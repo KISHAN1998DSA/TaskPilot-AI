@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../../store';
 import { toggleSidebar } from '../../store/slices/uiSlice';
@@ -76,8 +76,8 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
           <nav className="flex-1 overflow-y-auto p-4">
             <ul className="space-y-1">
               <li>
-                <a
-                  href="/dashboard"
+                <Link
+                  to="/dashboard"
                   className={`flex items-center rounded-md px-3 py-2 ${
                     isActive('/dashboard')
                       ? 'bg-primary text-primary-foreground'
@@ -99,7 +99,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                     />
                   </svg>
                   Dashboard
-                </a>
+                </Link>
               </li>
 
               {/* Boards Section */}
