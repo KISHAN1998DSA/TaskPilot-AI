@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const db = require('../models');
+const User = db.User;
 
 /**
  * Middleware to authenticate JWT tokens
@@ -17,8 +18,10 @@ const authenticateJWT = async (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
-      // Find user and exclude password
-      const user = await User.findById(decoded.id).select('-password');
+      // Find user using Sequelize
+      const user = await User.findByPk(decoded.id, {
+        attributes: { exclude: ['password'] }
+      });
       
       if (!user) {
         return res.status(401).json({ message: 'User not found' });
@@ -39,7 +42,7 @@ const authenticateJWT = async (req, res, next) => {
  * Middleware to check if user has admin role
  */
 const isAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== 'Admin') {
+  if (!req.user || req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
   }
   next();
@@ -52,7 +55,7 @@ const isOwnerOrAdmin = (resourceModel) => {
   return async (req, res, next) => {
     try {
       const resourceId = req.params.id || req.params.boardId || req.params.taskId;
-      const resource = await resourceModel.findById(resourceId);
+      const resource = await resourceModel.findByPk(resourceId);
 
       if (!resource) {
         return res.status(404).json({ message: 'Resource not found' });
@@ -60,17 +63,20 @@ const isOwnerOrAdmin = (resourceModel) => {
 
       // Check if user is owner or admin
       if (
-        resource.createdBy.toString() === req.user._id.toString() ||
-        req.user.role === 'Admin'
+        resource.userId === req.user.id ||
+        req.user.role === 'admin'
       ) {
         req.resource = resource;
         return next();
       }
 
-      // For boards, check if user is a member
-      if (resourceModel.modelName === 'Board' && resource.members.includes(req.user._id)) {
-        req.resource = resource;
-        return next();
+      // For boards, check if user is a member (using association)
+      if (resourceModel.name === 'Board') {
+        const isMember = await resource.hasUser(req.user.id);
+        if (isMember) {
+          req.resource = resource;
+          return next();
+        }
       }
 
       return res.status(403).json({ message: 'Access denied. Not authorized to perform this action.' });
