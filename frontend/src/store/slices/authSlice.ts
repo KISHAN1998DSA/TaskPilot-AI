@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
+import api from '../../services/api';
 
 interface User {
   id: string;
@@ -35,7 +36,7 @@ export const login = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/auth/login', credentials);
+      const response = await api.post('/auth/login', credentials);
       localStorage.setItem('token', response.data.token);
       return response.data;
     } catch (error: unknown) {
@@ -49,7 +50,7 @@ export const register = createAsyncThunk(
   'auth/register',
   async (userData: { name: string; email: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await api.post('/auth/register', userData);
       localStorage.setItem('token', response.data.token);
       return response.data;
     } catch (error: unknown) {
@@ -66,7 +67,7 @@ export const logout = createAsyncThunk('auth/logout', async () => {
 
 export const getCurrentUser = createAsyncThunk('auth/getCurrentUser', async (_, { rejectWithValue }) => {
   try {
-    const response = await axios.get('/api/auth/me');
+    const response = await api.get('/auth/me');
     return response.data;
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;

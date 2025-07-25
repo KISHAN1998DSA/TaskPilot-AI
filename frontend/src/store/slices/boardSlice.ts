@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
+import api from '../../services/api';
 
 export interface Board {
   id: string;
@@ -40,7 +41,7 @@ const initialState: BoardState = {
 // Async thunks
 export const fetchBoards = createAsyncThunk('boards/fetchBoards', async (_, { rejectWithValue }) => {
   try {
-    const response = await axios.get('/api/boards');
+    const response = await api.get('/boards');
     return response.data;
   } catch (error: unknown) {
     const axiosError = error as AxiosError<ErrorResponse>;
@@ -52,7 +53,7 @@ export const fetchBoardById = createAsyncThunk(
   'boards/fetchBoardById',
   async (boardId: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/api/boards/${boardId}`);
+      const response = await api.get(`/boards/${boardId}`);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -65,7 +66,7 @@ export const createBoard = createAsyncThunk(
   'boards/createBoard',
   async (boardData: { name: string; description?: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/boards', boardData);
+      const response = await api.post('/boards', boardData);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -81,7 +82,7 @@ export const updateBoard = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axios.put(`/api/boards/${boardId}`, boardData);
+      const response = await api.put(`/boards/${boardId}`, boardData);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -94,7 +95,7 @@ export const deleteBoard = createAsyncThunk(
   'boards/deleteBoard',
   async (boardId: string, { rejectWithValue }) => {
     try {
-      await axios.delete(`/api/boards/${boardId}`);
+      await api.delete(`/boards/${boardId}`);
       return boardId;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -110,7 +111,7 @@ export const updateColumnOrder = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axios.put(`/api/boards/${boardId}/columns`, { columns });
+      const response = await api.put(`/boards/${boardId}/columns`, { columns });
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ErrorResponse>;

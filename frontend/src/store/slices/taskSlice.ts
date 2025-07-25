@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
+import api from '../../services/api';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export interface Task {
@@ -57,7 +58,7 @@ export const fetchTasks = createAsyncThunk(
   'tasks/fetchTasks',
   async (boardId: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/api/boards/${boardId}/tasks`);
+      const response = await api.get(`/boards/${boardId}/tasks`);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -70,7 +71,7 @@ export const fetchTaskById = createAsyncThunk(
   'tasks/fetchTaskById',
   async ({ boardId, taskId }: { boardId: string; taskId: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/api/boards/${boardId}/tasks/${taskId}`);
+      const response = await api.get(`/boards/${boardId}/tasks/${taskId}`);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -86,7 +87,7 @@ export const createTask = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axios.post(`/api/boards/${boardId}/tasks`, taskData);
+      const response = await api.post(`/boards/${boardId}/tasks`, taskData);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -102,7 +103,7 @@ export const updateTask = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axios.put(`/api/boards/${boardId}/tasks/${taskId}`, taskData);
+      const response = await api.put(`/boards/${boardId}/tasks/${taskId}`, taskData);
       return response.data;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -115,7 +116,7 @@ export const deleteTask = createAsyncThunk(
   'tasks/deleteTask',
   async ({ boardId, taskId }: { boardId: string; taskId: string }, { rejectWithValue }) => {
     try {
-      await axios.delete(`/api/boards/${boardId}/tasks/${taskId}`);
+      await api.delete(`/boards/${boardId}/tasks/${taskId}`);
       return taskId;
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -143,7 +144,7 @@ export const moveTask = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axios.put(`/api/boards/${boardId}/tasks/${taskId}/move`, {
+      const response = await api.put(`/boards/${boardId}/tasks/${taskId}/move`, {
         sourceColumnId,
         destinationColumnId,
         newIndex,
@@ -163,7 +164,7 @@ export const addComment = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axios.post(`/api/boards/${boardId}/tasks/${taskId}/comments`, { text });
+      const response = await api.post(`/boards/${boardId}/tasks/${taskId}/comments`, { text });
       return { taskId, comment: response.data };
     } catch (error: unknown) {
       const axiosError = error as AxiosError<ErrorResponse>;

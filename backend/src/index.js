@@ -1,11 +1,13 @@
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 const http = require('http');
 const { Server } = require('socket.io');
+
+// Database models
+const db = require('./models');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -37,10 +39,10 @@ app.use(morgan('dev'));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Database connection
-mongoose
-  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/taskmanagement')
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+db.sequelize
+  .sync()
+  .then(() => console.log('Database connected'))
+  .catch((err) => console.error('Database connection error:', err));
 
 // Socket.io connection
 io.on('connection', (socket) => {

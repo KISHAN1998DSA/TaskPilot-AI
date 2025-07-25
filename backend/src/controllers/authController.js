@@ -1,13 +1,14 @@
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
-const User = require('../models/User');
+const db = require('../models');
+const User = db.User;
 
 /**
  * Generate JWT token
  */
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
+    expiresIn: process.env.JWT_EXPIRES_IN || '30d', // Default to 30 days if not specified
   });
 };
 
@@ -26,7 +27,7 @@ exports.register = async (req, res, next) => {
     const { name, email, password } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
@@ -39,12 +40,12 @@ exports.register = async (req, res, next) => {
     });
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user.id);
 
     res.status(201).json({
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -71,7 +72,10 @@ exports.login = async (req, res, next) => {
     const { email, password } = req.body;
 
     // Find user by email and include password for comparison
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ 
+      where: { email },
+      attributes: { include: ['password'] }
+    });
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -84,12 +88,12 @@ exports.login = async (req, res, next) => {
     }
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user.id);
 
     res.json({
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,

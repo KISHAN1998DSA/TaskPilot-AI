@@ -1,65 +1,52 @@
-const mongoose = require('mongoose');
-
-const columnSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, 'Column name is required'],
-      trim: true,
+module.exports = (sequelize, DataTypes) => {
+  const Board = sequelize.define('Board', {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true
     },
-    taskIds: {
-      type: [String],
-      default: [],
-    },
-  },
-  { _id: true, id: true }
-);
-
-const boardSchema = new mongoose.Schema(
-  {
     name: {
-      type: String,
-      required: [true, 'Board name is required'],
-      trim: true,
+      type: DataTypes.STRING,
+      allowNull: false
     },
     description: {
-      type: String,
-      trim: true,
+      type: DataTypes.TEXT
     },
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
+    background: {
+      type: DataTypes.STRING,
+      defaultValue: '#0079bf'
     },
-    members: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-      },
-    ],
-    columns: {
-      type: [columnSchema],
-      default: [
-        { name: 'To Do', taskIds: [] },
-        { name: 'In Progress', taskIds: [] },
-        { name: 'Done', taskIds: [] },
-      ],
+    isPublic: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     },
-  },
-  {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
-  }
-);
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false
+    }
+  }, {
+    timestamps: true
+  });
 
-// Virtual for tasks
-boardSchema.virtual('tasks', {
-  ref: 'Task',
-  localField: '_id',
-  foreignField: 'boardId',
-});
+  // Define associations
+  Board.associate = (models) => {
+    Board.belongsTo(models.User, {
+      foreignKey: 'userId',
+      as: 'owner'
+    });
 
-const Board = mongoose.model('Board', boardSchema);
+    Board.belongsToMany(models.User, {
+      through: 'BoardMembers',
+      as: 'members',
+      foreignKey: 'boardId'
+    });
 
-module.exports = Board; 
+    Board.hasMany(models.List, {
+      foreignKey: 'boardId',
+      as: 'lists',
+      onDelete: 'CASCADE'
+    });
+  };
+
+  return Board;
+}; 
